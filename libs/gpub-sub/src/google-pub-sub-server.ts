@@ -1,5 +1,6 @@
 import { PubSub, Subscription } from '@google-cloud/pubsub';
 import { Server, CustomTransportStrategy } from '@nestjs/microservices';
+import { PubSubConfig } from './interface/pub-sub-config.interface';
 // import { pubsubConfig } from 'src/config/pub-sub.config';
 
 export class GoogleCloudPubSubServer
@@ -9,7 +10,7 @@ export class GoogleCloudPubSubServer
   private readonly pubSub: PubSub;
   private subscriptions: Subscription[] = []; // Type should be Subscription from '@google-cloud/pubsub'
 
-  constructor(private readonly options: any) {
+  constructor(private readonly options: PubSubConfig) {
     super();
     this.pubSub = new PubSub(this.options);
   }
