@@ -4,7 +4,7 @@ import { PubSubClientOptions } from './interface/pub-sub-config.interface';
 import { Logger } from '@nestjs/common';
 import { PubSub } from '@google-cloud/pubsub';
 
-export declare enum Transport {
+export enum Transport {
   GOOGLE_PUBSUB = 'GOOGLE_PUBSUB',
 }
 
@@ -37,17 +37,36 @@ export class GoogleCloudPubSubClient extends ClientProxy {
   }
 
   async dispatchEvent(packet: ReadPacket<any>): Promise<any> {
-    return console.log('event to dispatch: ', packet);
+    throw new Error('Method not implemented.');
   }
 
-  publish(packet: ReadPacket, callback: (packet: WritePacket<any>) => void) {
-    console.log('message:', packet);
+  publish(
+    packet: ReadPacket<any>,
+    callback: (packet: WritePacket<any>) => void,
+  ) {
+    const topic = this.pubSub.topic(packet.pattern);
+    const dataBuffer = Buffer.from(JSON.stringify(packet.data));
 
-    // In a real-world application, the "callback" function should be executed
-    // with payload sent back from the responder. Here, we'll simply simulate (5 seconds delay)
-    // that response came through by passing the same "data" as we've originally passed in.
-    setTimeout(() => callback({ response: packet.data }), 5000);
-
+    topic.publish(dataBuffer, undefined, (err) => {
+      if (err) {
+        return callback({ err });
+      }
+      callback({ response: packet.data });
+    });
     return () => console.log('teardown');
+  }
+
+  emit<TResult = any, TInput = any>(
+    pattern: any,
+    data: TInput,
+  ): Observable<TResult> {
+    throw new Error('Method not implemented.');
+  }
+
+  send<TResult = any, TInput = any>(
+    pattern: any,
+    data: TInput,
+  ): Observable<TResult> {
+    throw new Error('Method not implemented.');
   }
 }

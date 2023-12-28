@@ -10,11 +10,7 @@ export interface PubSubServerOptions {
   subscriptions?: string[];
 }
 
-export interface ClientOptions {
-  transport: Transport;
-  options?: PubSubClientOptions;
-}
-
 export interface PubSubClientOptions {
+  transport: Transport;
   clientConfig: PubSubConfig;
 }
