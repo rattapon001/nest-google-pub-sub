@@ -51,7 +51,6 @@ export class GoogleCloudPubSubClient extends ClientProxy {
       if (err) {
         return callback({ err });
       }
-      callback({ response: packet.data });
     });
     return () => console.log('teardown');
   }
