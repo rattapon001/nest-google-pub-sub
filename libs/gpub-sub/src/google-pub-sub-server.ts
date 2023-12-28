@@ -11,7 +11,7 @@ export class GoogleCloudPubSubServer
 
   constructor(private readonly options: any) {
     super();
-    this.pubSub = new PubSub(options);
+    this.pubSub = new PubSub(this.options);
   }
 
   async getAllSubscription() {
