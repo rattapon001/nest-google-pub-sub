@@ -1,26 +1,46 @@
 import { ClientProxy, ReadPacket, WritePacket } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
+import { PubSubClientOptions } from './interface/pub-sub-config.interface';
+import { Logger } from '@nestjs/common';
+import { PubSub } from '@google-cloud/pubsub';
+
+export declare enum Transport {
+  GOOGLE_PUBSUB = 'GOOGLE_PUBSUB',
+}
 
 export class GoogleCloudPubSubClient extends ClientProxy {
-  constructor(options?: any) {
+  protected logger = new Logger(GoogleCloudPubSubClient.name);
+  protected pubSub: PubSub;
+
+  private options: PubSubClientOptions;
+
+  constructor(options?: PubSubClientOptions) {
     super();
+    this.options = options;
   }
   async connect(): Promise<any> {
-    console.log('connect');
+    const isPubSubExist = this.pubSub !== undefined;
+    if (isPubSubExist) {
+      return;
+    }
+
+    this.pubSub = new PubSub(this.options.clientConfig);
+    this.logger.log('Connected to Google Cloud PubSub');
   }
 
   async close() {
-    console.log('close');
+    if (this.pubSub !== undefined) {
+      await this.pubSub.close();
+      this.pubSub = undefined;
+    }
+    this.logger.log('Disconnected from Google Cloud PubSub');
   }
 
   async dispatchEvent(packet: ReadPacket<any>): Promise<any> {
     return console.log('event to dispatch: ', packet);
   }
 
-  publish(
-    packet: ReadPacket<any>,
-    callback: (packet: WritePacket<any>) => void,
-  ) {
+  publish(packet: ReadPacket, callback: (packet: WritePacket<any>) => void) {
     console.log('message:', packet);
 
     // In a real-world application, the "callback" function should be executed
@@ -30,12 +50,4 @@ export class GoogleCloudPubSubClient extends ClientProxy {
 
     return () => console.log('teardown');
   }
-
-  //   emit<TResult = any, TInput = any>(pattern: any, data: TInput): Observable<TResult> {
-  //     console.log('emit');
-  //     return new Observable((observer) => {
-  //       observer.next(data);
-  //       observer.complete();
-  //     });
-  //   }
 }
