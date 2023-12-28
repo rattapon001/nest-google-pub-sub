@@ -5,6 +5,11 @@ export interface PubSubConfig {
   keyFilename: string;
 }
 
+export interface PubSubServerOptions {
+  serverConfig: PubSubConfig;
+  subscriptions?: string[];
+}
+
 export interface ClientOptions {
   transport: Transport;
   options?: PubSubClientOptions;

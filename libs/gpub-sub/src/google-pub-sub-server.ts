@@ -1,6 +1,9 @@
 import { PubSub, Subscription } from '@google-cloud/pubsub';
 import { Server, CustomTransportStrategy } from '@nestjs/microservices';
-import { PubSubConfig } from './interface/pub-sub-config.interface';
+import {
+  PubSubConfig,
+  PubSubServerOptions,
+} from './interface/pub-sub-config.interface';
 // import { pubsubConfig } from 'src/config/pub-sub.config';
 
 export class GoogleCloudPubSubServer
@@ -9,10 +12,11 @@ export class GoogleCloudPubSubServer
 {
   private readonly pubSub: PubSub;
   private subscriptions: Subscription[] = []; // Type should be Subscription from '@google-cloud/pubsub'
-
-  constructor(private readonly options: PubSubConfig) {
+  private readonly options: PubSubServerOptions;
+  constructor(options: PubSubServerOptions) {
     super();
-    this.pubSub = new PubSub(this.options);
+    this.options = options;
+    this.pubSub = new PubSub(this.options.serverConfig);
   }
 
   async getAllSubscription() {
@@ -29,7 +33,12 @@ export class GoogleCloudPubSubServer
   }
 
   public async listen(callback: () => void) {
-    const subscriptionNames = await this.getAllSubscription();
+    let subscriptionNames: string[] = [];
+    if (this.options.subscriptions?.length > 0) {
+      subscriptionNames = this.options.subscriptions;
+    } else {
+      subscriptionNames = await this.getAllSubscription();
+    }
 
     this.subscriptions = subscriptionNames.map((subscriptionName) => {
       const subscription = this.pubSub.subscription(subscriptionName);
