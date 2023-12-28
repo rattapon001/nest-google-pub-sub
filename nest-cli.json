@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true
+  },
+  "projects": {
+    "gpub-sub": {
+      "type": "library",
+      "root": "libs/gpub-sub",
+      "entryFile": "index",
+      "sourceRoot": "libs/gpub-sub/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/gpub-sub/tsconfig.lib.json"
+      }
+    }
+  }
+}
