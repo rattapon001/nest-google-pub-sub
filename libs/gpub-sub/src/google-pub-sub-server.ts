@@ -1,10 +1,6 @@
 import { PubSub, Subscription } from '@google-cloud/pubsub';
 import { Server, CustomTransportStrategy } from '@nestjs/microservices';
-import {
-  PubSubConfig,
-  PubSubServerOptions,
-} from './interface/pub-sub-config.interface';
-// import { pubsubConfig } from 'src/config/pub-sub.config';
+import { PubSubServerOptions } from './interface/pub-sub-config.interface';
 
 export class GoogleCloudPubSubServer
   extends Server
