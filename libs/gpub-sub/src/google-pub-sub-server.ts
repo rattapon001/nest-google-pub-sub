@@ -55,15 +55,20 @@ export class GoogleCloudPubSubServer
     callback();
   }
 
+  private getPatternFormSubscription(subscription: string) {
+    const pattern = subscription.split('/').pop();
+    return pattern;
+  }
+
   private handleMessage(message: any, subscription: string) {
+    const pattern = this.getPatternFormSubscription(subscription);
     // // Handle incoming message
     const data = JSON.parse(message.data.toString());
-
     // // Emit the message to the appropriate pattern
     this.handleEvent(
-      subscription,
+      pattern,
       {
-        pattern: subscription,
+        pattern: pattern,
         data: data,
       },
       null,
