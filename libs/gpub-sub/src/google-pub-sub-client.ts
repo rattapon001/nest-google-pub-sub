@@ -2,7 +2,7 @@ import { ClientProxy, ReadPacket, WritePacket } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
 import { PubSubClientOptions } from './interface/pub-sub-config.interface';
 import { Logger } from '@nestjs/common';
-import { PubSub } from '@google-cloud/pubsub';
+import { PubSub, Topic } from '@google-cloud/pubsub';
 
 export enum Transport {
   GOOGLE_PUBSUB = 'GOOGLE_PUBSUB',
@@ -11,12 +11,13 @@ export enum Transport {
 export class GoogleCloudPubSubClient extends ClientProxy {
   protected logger = new Logger(GoogleCloudPubSubClient.name);
   protected pubSub: PubSub;
-
   private options: PubSubClientOptions;
+  private project: string;
 
   constructor(options?: PubSubClientOptions) {
     super();
     this.options = options;
+    this.project = 'projects/' + this.options.clientConfig.projectId;
   }
   async connect(): Promise<any> {
     const isPubSubExist = this.pubSub !== undefined;
@@ -40,18 +41,36 @@ export class GoogleCloudPubSubClient extends ClientProxy {
     throw new Error('Method not implemented.');
   }
 
+  private async getTopicOrCreate(pattern: string) {
+    const topicName = this.project + '/topics/' + pattern;
+    const topic = this.pubSub.topic(topicName);
+    const [exists] = await topic.exists();
+    if (!exists) {
+      await topic.create();
+      await topic.createSubscription(pattern);
+    }
+    return topic;
+  }
+
   publish(
     packet: ReadPacket<any>,
     callback: (packet: WritePacket<any>) => void,
   ) {
-    const topic = this.pubSub.topic(packet.pattern);
-    const dataBuffer = Buffer.from(JSON.stringify(packet.data));
+    const publishMessage = async (topic: Topic) => {
+      const dataBuffer = Buffer.from(JSON.stringify(packet.data));
+      topic.publish(dataBuffer, undefined, (err: any) => {
+        if (err) {
+          return callback({ err });
+        }
+      });
+    };
 
-    topic.publish(dataBuffer, undefined, (err) => {
-      if (err) {
-        return callback({ err });
-      }
+    const topicPromise = this.getTopicOrCreate(packet.pattern);
+
+    topicPromise.then(publishMessage).catch((error) => {
+      console.error('Error publishing message:', error);
     });
+
     return () => console.log('teardown');
   }
 
